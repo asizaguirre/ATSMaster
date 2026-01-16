@@ -3,19 +3,22 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
 
 export const analyzeResume = async (resumeText: string, jobDescription: string): Promise<AnalysisResult> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error("Chave de API não configurada. Crie um arquivo .env na raiz do projeto com a variável GEMINI_API_KEY.");
+  }
+  const ai = new GoogleGenAI({ apiKey });
   
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Aja como um sistema de análise de RH (ATS) e especialista em branding pessoal. 
-    Compare o currículo com a descrição da vaga e forneça otimizações para o LinkedIn.
+    contents: `Aja como um sistema de análise de RH (ATS). Sua tarefa é comparar um currículo com uma descrição de vaga.
     
     VAGA: ${jobDescription}
     CURRÍCULO: ${resumeText}`,
     config: {
-      systemInstruction: `Você é um especialista em recrutamento e seleção (ATS) e especialista em otimização de perfis LinkedIn. 
-      Compare o currículo com a vaga e forneça uma pontuação realista.
-      Além da análise de compatibilidade, gere sugestões específicas para o LinkedIn que aumentem a visibilidade do candidato para esta vaga específica.`,
+      systemInstruction: `Você é um especialista em recrutamento e seleção (ATS). 
+      Compare o currículo com a descrição da vaga. 
+      Identifique as lacunas de competências e forneça uma pontuação realista.`,
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
@@ -27,7 +30,7 @@ export const analyzeResume = async (resumeText: string, jobDescription: string):
           missingKeywords: {
             type: Type.ARRAY,
             items: { type: Type.STRING },
-            description: "Palavras-chave técnicas que estão na vaga mas NÃO estão no currículo",
+            description: "Palavras-chave técnicas (skills) que estão na vaga mas NÃO estão no currículo",
           },
           matchAnalysis: {
             type: Type.STRING,
@@ -36,34 +39,17 @@ export const analyzeResume = async (resumeText: string, jobDescription: string):
           recommendation: {
             type: Type.STRING,
             description: "Resumo de 2 frases com conselhos de melhoria",
-          },
-          linkedin: {
-            type: Type.OBJECT,
-            properties: {
-              suggestedHeadline: {
-                type: Type.STRING,
-                description: "Título otimizado para o LinkedIn (Headline) usando palavras-chave da vaga",
-              },
-              suggestedAbout: {
-                type: Type.STRING,
-                description: "Sugestão de texto para a seção 'Sobre' do LinkedIn",
-              },
-              topSkillsToAdd: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-                description: "As 5 principais competências para listar no LinkedIn",
-              }
-            },
-            required: ["suggestedHeadline", "suggestedAbout", "topSkillsToAdd"]
           }
         },
-        required: ["score", "missingKeywords", "matchAnalysis", "recommendation", "linkedin"],
+        required: ["score", "missingKeywords", "matchAnalysis", "recommendation"],
       },
     },
   });
 
   const text = response.text;
-  if (!text) throw new Error("Não foi possível obter uma resposta do modelo.");
+  if (!text) {
+    throw new Error("Não foi possível obter uma resposta do modelo.");
+  }
 
   try {
     return JSON.parse(text) as AnalysisResult;
