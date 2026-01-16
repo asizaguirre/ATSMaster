@@ -3,9 +3,9 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
 
 export const analyzeResume = async (resumeText: string, jobDescription: string): Promise<AnalysisResult> => {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("Chave de API não configurada. Crie um arquivo .env na raiz do projeto com a variável GEMINI_API_KEY.");
+    throw new Error("Chave de API não configurada. Verifique se VITE_GEMINI_API_KEY está definida no .env (local) ou nas variáveis da Vercel.");
   }
   const ai = new GoogleGenAI({ apiKey });
   
