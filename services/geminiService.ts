@@ -3,7 +3,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
 
 export const analyzeResume = async (resumeText: string, jobDescription: string): Promise<AnalysisResult> => {
-  const apiKey = process.env.API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("Chave de API não configurada. Crie um arquivo .env na raiz do projeto com a variável GEMINI_API_KEY.");
   }
