@@ -1,0 +1,5 @@
+{
+  "name": "ATS Master Pro",
+  "description": "A world-class Applicant Tracking System analyzer that uses Gemini AI to compare resumes against job descriptions, providing detailed scoring, missing keyword analysis, and actionable improvement tips.",
+  "requestFramePermissions": []
+}
